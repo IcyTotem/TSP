@@ -1,0 +1,10 @@
+C:\Users\Totem\AppData\Local\Temporary Projects\TSP\bin\Debug\TSP.exe
+C:\Users\Totem\AppData\Local\Temporary Projects\TSP\bin\Debug\TSP.pdb
+C:\Users\Totem\AppData\Local\Temporary Projects\TSP\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\Totem\AppData\Local\Temporary Projects\TSP\obj\x86\Debug\TSP.exe
+C:\Users\Totem\AppData\Local\Temporary Projects\TSP\obj\x86\Debug\TSP.pdb
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\obj\x86\Debug\TSP.exe
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\obj\x86\Debug\TSP.pdb
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\bin\Debug\TSP.exe
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\bin\Debug\TSP.pdb
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\obj\x86\Debug\TSP.csprojResolveAssemblyReference.cache

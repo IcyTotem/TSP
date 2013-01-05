@@ -1,0 +1,5 @@
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\bin\Release\TSP.exe
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\bin\Release\TSP.pdb
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\obj\x86\Release\TSP.exe
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\obj\x86\Release\TSP.pdb
+C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\obj\x86\Release\TSP.csprojResolveAssemblyReference.cache
