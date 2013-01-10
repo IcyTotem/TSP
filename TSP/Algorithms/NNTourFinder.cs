@@ -10,10 +10,10 @@ namespace TSP
         private Random random;
 
         private IntegerSortedSet visitedNodes, unvisitedNodes;
-        private Point[] nodes;
+        private PointArray nodes;
         private TabuEdgeCollection tabuEdgeList;
         
-        public NNTourFinder(Point[] nodes)
+        public NNTourFinder(PointArray nodes)
         {
             this.nodes = nodes;
             this.random = new Random();

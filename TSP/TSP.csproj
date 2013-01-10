@@ -44,14 +44,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Algorithms\GeneticTspEngine.cs" />
+    <Compile Include="Algorithms\NNClusterSet.cs" />
     <Compile Include="Algorithms\NNTourFinder.cs" />
     <Compile Include="Algorithms\ShortestEdgeFinder.cs" />
     <Compile Include="Algorithms\TwoOptimizer.cs" />
+    <Compile Include="DataStructures\BinaryHeap.cs" />
     <Compile Include="DataStructures\Edge.cs" />
     <Compile Include="DataStructures\IntegerPermutation.cs" />
     <Compile Include="DataStructures\IntegerRandomAccessSet.cs" />
     <Compile Include="DataStructures\Point.cs" />
     <Compile Include="DataStructures\IntegerStream.cs" />
+    <Compile Include="DataStructures\PointArray.cs" />
     <Compile Include="DataStructures\TabuEdgeCollection.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Utility.cs" />

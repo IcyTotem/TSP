@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Threading;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace TSP
 {
@@ -18,10 +19,12 @@ namespace TSP
         const string BestTourFileName = "best-first-tour.dat";
         const string SecondBestTourFileName = "best-second-tour.dat";
         const string OneEdgeTourFileName = "one-edge-tour.dat";
+        const string NNClusterFileName = "nncluster.dat";
 
         static string DataFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Data");
 
-        static Point[] cities;
+        static PointArray cities;
+        static NNClusterSet nnCluster;
         static IntegerPermutation bestTour, secondBestTour;
         static double bestTourDistance, secondBestTourDistance;
 
@@ -31,16 +34,26 @@ namespace TSP
 
             ParseData();
 
+            InitializeClusterSet();
             InitializeBestTour();
             InitializeSecondBestTour();
 
+            long sum = Enumerable.Range(0, 150000).Select(i => (long)i).Sum();
+
+            long s1 = bestTour.Select(i => (long)i).Sum();
+            long s2 = secondBestTour.Select(i => (long)i).Sum();
+            bool d = CheckDisjointness(bestTour, secondBestTour);
+
             UpdateLoggerFooter();
 
-            var geneticEngine = new GeneticTspEngine(cities);
-            var optimizer = new TwoOptimizer(cities);
-            var nnTourFinder = new NNTourFinder(cities);
+            CrossOptimize();
 
-            geneticEngine.NNProbability = 0.05;
+            Console.WriteLine("Genetic?");
+            Console.ReadKey();
+
+            var optimizer = new TwoOptimizer(cities);
+            var geneticEngine = new GeneticTspEngine(cities);
+            var nnTourFinder = new NNTourFinder(cities);
 
             while (secondBestTourDistance > TargetDistance)
             {
@@ -69,7 +82,7 @@ namespace TSP
                     var oldDistance = bestTourDistance;
 
                     optimizer.Optimize(bestTour);
-                    bestTourDistance = ComputeTourLength(bestTour);
+                    bestTourDistance = cities.GetDistance(bestTour);
                     UpdateLoggerFooter();
 
                     gain = oldDistance - bestTourDistance;
@@ -114,7 +127,7 @@ namespace TSP
                     var oldDistance = secondBestTourDistance;
 
                     optimizer.OptimizeDisjoint(secondBestTour, bestTour);
-                    secondBestTourDistance = ComputeTourLength(secondBestTour);
+                    secondBestTourDistance = cities.GetDistance(secondBestTour);
                     UpdateLoggerFooter();
 
                     gain = oldDistance - secondBestTourDistance;
@@ -137,7 +150,7 @@ namespace TSP
             var reader = new StreamReader(InputFileName);
             var count = int.Parse(reader.ReadLine());
 
-            cities = new Point[count];
+            cities = new PointArray(count);
             for (int i = 0; i < count; i++)
             {
                 var coords = reader.ReadLine().Split(',');
@@ -222,7 +235,7 @@ namespace TSP
                 SaveTour(bestTour, BestTourFileName);
             }
 
-            bestTourDistance = ComputeTourLength(bestTour);
+            bestTourDistance = cities.GetDistance(bestTour);
         }
 
         static void InitializeSecondBestTour()
@@ -239,7 +252,23 @@ namespace TSP
                 SaveTour(secondBestTour, SecondBestTourFileName);
             }
 
-            secondBestTourDistance = ComputeTourLength(secondBestTour);
+            secondBestTourDistance = cities.GetDistance(secondBestTour);
+        }
+
+        static void InitializeClusterSet()
+        {
+            var clusterPath = Path.Combine(DataFolder, NNClusterFileName);
+            if (File.Exists(clusterPath))
+            {
+                nnCluster = NNClusterSet.DeserializeFrom(new FileStream(clusterPath, FileMode.Open), cities, 5);
+            }
+            else
+            {
+                TaskLogger.TaskName = "Clustering for future use";
+
+                nnCluster = NNClusterSet.Build(cities, 5);
+                nnCluster.SerializeOn(new FileStream(clusterPath, FileMode.Create));
+            }
         }
 
         static void UpdateLoggerFooter()
@@ -248,23 +277,26 @@ namespace TSP
         }
 
 
-        public static double ComputeTourLength(IEnumerable<int> tour)
+        static void CrossOptimize()
         {
-            double totalDistance = 0;
-            int prevNode = -1;
+            var optimizer = new TwoOptimizer(cities);
 
-            foreach (int node in tour)
+            TaskLogger.TaskName = "Cross-optimization";
+
+            optimizer.ClusterSet = nnCluster;
+            optimizer.CrossOptimize(secondBestTour, bestTour);
+
+            var newDistance = cities.GetDistance(secondBestTour);
+
+            if (newDistance < secondBestTourDistance && newDistance > bestTourDistance)
             {
-                int currentNode = node;
-
-                if (prevNode > -1)
-                    totalDistance += Point.Distance(cities[prevNode], cities[currentNode]);
-                
-                prevNode = currentNode;
+                SaveTour(secondBestTour, SecondBestTourFileName);
+                SaveTour(bestTour, BestTourFileName);
             }
 
-            return totalDistance;
+            UpdateLoggerFooter();
         }
+
 
         public static bool CheckDisjointness(IntegerPermutation tour1, IntegerPermutation tour2)
         {

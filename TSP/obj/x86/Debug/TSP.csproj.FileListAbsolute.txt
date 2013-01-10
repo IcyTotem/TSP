@@ -8,3 +8,8 @@ C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\obj\x86\Debug\TSP.
 C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\bin\Debug\TSP.exe
 C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\bin\Debug\TSP.pdb
 C:\Users\Nicolo\Documents\Visual Studio 2010\Projects\TSP\TSP\obj\x86\Debug\TSP.csprojResolveAssemblyReference.cache
+K:\Users\Totem\Documents\Visual Studio 2010\Projects\TSP\TSP\TSP\obj\x86\Debug\ResolveAssemblyReference.cache
+K:\Users\Totem\Documents\Visual Studio 2010\Projects\TSP\TSP\TSP\obj\x86\Debug\TSP.exe
+K:\Users\Totem\Documents\Visual Studio 2010\Projects\TSP\TSP\TSP\obj\x86\Debug\TSP.pdb
+K:\Users\Totem\Documents\Visual Studio 2010\Projects\TSP\TSP\TSP\bin\Debug\TSP.exe
+K:\Users\Totem\Documents\Visual Studio 2010\Projects\TSP\TSP\TSP\bin\Debug\TSP.pdb

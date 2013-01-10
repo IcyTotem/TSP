@@ -10,41 +10,23 @@ namespace TSP
     {
         public class Solution : IntegerPermutation
         {
-            private Point[] nodePositions;
+            private PointArray nodePositions;
             private double distance = 0;
 
             public double Distance
             {
-                get { return (distance == 0) ? (distance = this.ComputeDistance()) : (distance); }
+                get { return (distance == 0) ? (distance = nodePositions.GetDistance(this)) : (distance); }
             }
 
-            internal Solution(Point[] nodesPosition, IntegerPermutation permutation) : base(permutation) 
+            internal Solution(PointArray nodesPosition, IntegerPermutation permutation) : base(permutation) 
             {
                 this.nodePositions = nodesPosition;
-            }
-
-            private double ComputeDistance()
-            {
-                double totalDistance = 0;
-                int prevNode = -1;
-
-                foreach (int node in this)
-                {
-                    int currentNode = node;
-
-                    if (prevNode > -1)
-                        totalDistance += Point.Distance(nodePositions[prevNode], nodePositions[currentNode]);
-
-                    prevNode = currentNode;
-                }
-
-                return totalDistance;
             }
         }
 
         private Random random;
 
-        private Point[] nodePositions;
+        private PointArray nodePositions;
         private List<Solution> population;
 
         public int PopulationSize { get; set; }
@@ -59,15 +41,15 @@ namespace TSP
             get { return population; }
         }
 
-        public GeneticTspEngine(Point[] nodePositions)
+        public GeneticTspEngine(PointArray nodePositions)
         {
             this.nodePositions = nodePositions;
             this.population = new List<Solution>();
 
-            this.PopulationSize = 50;
-            this.MutationProbability = 0.2;
-            this.EliteFactor = 0.2;
-            this.NNProbability = 0.1;
+            this.PopulationSize = 100;
+            this.MutationProbability = 0.02;
+            this.EliteFactor = 0.05;
+            this.NNProbability = 0.02;
 
             this.CurrentGeneration = 0;
 
@@ -188,46 +170,27 @@ namespace TSP
             yield return population[random2];
         }
 
-        private Solution Mutate(IntegerPermutation solution)
+        private void Mutate(IntegerPermutation solution)
         {
-            int random1 = random.Next(0, solution.Length);
-            int random2 = random.NextDifferent(0, solution.Length, random1);
+            int magnitude = (int)(solution.Length * 0.01 * (0.5 + random.NextDouble()));
 
-            var result = new IntegerPermutation(solution);
+            for (int i = 0; i < magnitude; i++)
+            {
+                int random1 = random.Next(0, solution.Length);
+                int random2 = random.NextDifferent(0, solution.Length, random1);
 
-            var temp = result[random1];
-            result[random1] = result[random2];
-            result[random2] = temp;
-
-            return this.CreateSolution(result);
+                var temp = solution[random1];
+                solution[random1] = solution[random2];
+                solution[random2] = temp;
+            }
         }
 
         private void Initialize()
         {
-            var threads = new Thread[10];
-
             TaskLogger.Text = "Generating random solution pool...";
 
             while (population.Count < this.PopulationSize)
             {
-                /*int count = Math.Min(population.Count - this.PopulationSize, threads.Length);
-
-                for (int i = 0; i < count; i++)
-                {
-                    var thread = new Thread(delegate()
-                    {
-                        var solution = this.GenerateRandomSolution();
-                        lock (this) { population.Add(solution); }
-                    });
-                    threads[i] = thread;
-                    thread.Start();
-                }
-
-                for (int i = 0; i < count; i++)
-                {
-                    threads[i].Join();
-                    TaskLogger.Progress = 100.0 * population.Count / this.PopulationSize;
-                }*/
                 population.Add(this.GenerateRandomSolution());
                 TaskLogger.Progress = 100.0 * population.Count / this.PopulationSize;
             }
@@ -266,7 +229,7 @@ namespace TSP
             {
                 // Perform crossover between two random elite parents
                 var parents = this.PickRandomParents().ToArray();
-                var children = this.Crossover(parents[0], parents[1]);
+                var children = this.Crossover(parents[0], parents[1]).ToArray();
 
                 population.AddRange(children);
 
@@ -276,8 +239,10 @@ namespace TSP
                 // And eventually mutate a solution
                 if (random.NextDouble() <= this.MutationProbability)
                 {
-                    var randomSolution = population[random.Next(0, population.Count)];
-                    population.Add(this.Mutate(randomSolution));
+                    if (random.NextDouble() < 0.5)
+                        this.Mutate(children[0]);
+                    else
+                        this.Mutate(children[1]);
                 }
             }
 

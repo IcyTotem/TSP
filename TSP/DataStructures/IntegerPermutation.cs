@@ -71,7 +71,8 @@ namespace TSP
 
         public void ReverseSubsequence(int start, int end)
         {
-            int length = Math.Abs(end - start) / 2 + 1;
+            int diff = Math.Abs(end - start);
+            int length = (int)Math.Ceiling(diff / 2.0);
 
             while (length > 0)
             {
@@ -86,6 +87,26 @@ namespace TSP
             }
         }
 
+        // Extract element from the permutation, insert it before newIndex and shift the remaining elements to fit
+        public void MoveBefore(int element, int newIndex)
+        {
+            int elementIndex = this.IndexOf(element);
+            newIndex = this.GetPrevIndex(newIndex);
+
+            if (newIndex < elementIndex)
+            {
+                for (int i = elementIndex - 1; i >= newIndex; i--)
+                    data[i + 1] = data[i];
+                data[newIndex] = element;
+            }
+            else if (newIndex > elementIndex)
+            {
+                for (int i = elementIndex + 1; i <= newIndex; i++)
+                    data[i - 1] = data[i];
+                data[newIndex] = element;
+            }
+        }
+
         public int GetNextIndex(int index)
         {
             return (index + 1) % data.Length;
@@ -97,6 +118,11 @@ namespace TSP
                 return index - 1;
 
             return data.Length + index - 1;
+        }
+
+        public int IndexOf(int element)
+        {
+            return Array.IndexOf(data, element);
         }
 
         public IEnumerator<int> GetEnumerator()

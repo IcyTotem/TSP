@@ -23,7 +23,7 @@ namespace TSP
 
         private volatile ThreadInput[] threadInputs;
         private volatile ThreadResult[] threadResults;
-        private volatile Point[] nodes;
+        private volatile PointArray nodes;
 
         public ShortestEdgeFinder(int threadCount)
         {
@@ -36,7 +36,7 @@ namespace TSP
         }
 
 
-        public Edge FindInCompleteGraph(Point[] nodes)
+        public Edge FindInCompleteGraph(PointArray nodes)
         {
             this.nodes = nodes;
 

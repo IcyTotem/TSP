@@ -43,4 +43,37 @@ namespace TSP
             return value;
         }
     }
+
+    public static class ThreadStarter
+    {
+        public static Thread Start<T>(Action<T> method, T param)
+        {
+            Thread thread = new Thread(delegate()
+            {
+                method(param);
+            });
+
+            thread.Start();
+
+            return thread;
+        }
+
+        public static Thread Start<T1, T2>(Action<T1, T2> method, T1 param1, T2 param2)
+        {
+            Thread thread = new Thread(delegate()
+            {
+                method(param1, param2);
+            });
+
+            thread.Start();
+
+            return thread;
+        }
+
+        public static void JoinAll(this IEnumerable<Thread> threadCollection)
+        {
+            foreach (var thread in threadCollection)
+                thread.Join();
+        }
+    }
 }
