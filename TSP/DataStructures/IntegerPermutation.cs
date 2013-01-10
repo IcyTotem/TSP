@@ -7,6 +7,8 @@ namespace TSP
 {
     public class IntegerPermutation : IEnumerable<int>
     {
+        private Queue<int> recentIndices;
+
         protected volatile int[] data;
 
         public int Length
@@ -16,7 +18,8 @@ namespace TSP
 
         public IntegerPermutation(int size)
         {
-            this.data = new int[size]; 
+            this.data = new int[size];
+            this.recentIndices = new Queue<int>();
         }
 
         public IntegerPermutation(IEnumerable<int> original)
@@ -30,6 +33,7 @@ namespace TSP
             }
 
             this.data = (new List<int>(original)).ToArray();
+            this.recentIndices = new Queue<int>();
         }
 
         public virtual int this[int index]
@@ -120,9 +124,42 @@ namespace TSP
             return data.Length + index - 1;
         }
 
+        public int GetNext(int element)
+        {
+            // Search in last 10 indices
+            foreach (int recentIndex in recentIndices)
+                if (data[recentIndex] == element)
+                    return data[this.GetNextIndex(recentIndex)];
+
+            // Otheriwse, proceed normally
+            int index = this.IndexOf(element);
+            return data[this.GetNextIndex(index)];
+        }
+
+        public int GetPrev(int element)
+        {
+            foreach (int recentIndex in recentIndices)
+                if (data[recentIndex] == element)
+                    return data[this.GetPrevIndex(recentIndex)];
+
+            int index = this.IndexOf(element);
+            return data[this.GetPrevIndex(index)];
+        }
+
         public int IndexOf(int element)
         {
-            return Array.IndexOf(data, element);
+            int index = Array.IndexOf(data, element);
+
+            // Store index for future uses
+            if (index > -1)
+            {
+                recentIndices.Enqueue(index);
+
+                if (recentIndices.Count > 10)
+                    recentIndices.Dequeue();
+            }
+
+            return index;
         }
 
         public IEnumerator<int> GetEnumerator()

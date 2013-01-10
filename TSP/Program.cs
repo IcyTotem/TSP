@@ -14,6 +14,7 @@ namespace TSP
         const int InitializationThreadCount = 15;
 
         const double TargetDistance = 7000000;
+        static readonly long sum150k = Enumerable.Range(0, 150000).Select(i => (long)i).Sum();
 
         const string InputFileName = "santa-cities.csv";
         const string BestTourFileName = "best-first-tour.dat";
@@ -37,12 +38,6 @@ namespace TSP
             InitializeClusterSet();
             InitializeBestTour();
             InitializeSecondBestTour();
-
-            long sum = Enumerable.Range(0, 150000).Select(i => (long)i).Sum();
-
-            long s1 = bestTour.Select(i => (long)i).Sum();
-            long s2 = secondBestTour.Select(i => (long)i).Sum();
-            bool d = CheckDisjointness(bestTour, secondBestTour);
 
             UpdateLoggerFooter();
 
@@ -288,6 +283,14 @@ namespace TSP
 
             var newDistance = cities.GetDistance(secondBestTour);
 
+            if (!AreTourValid())
+            {
+                TaskLogger.Stop();
+                Console.WriteLine("Some error in the algorithm!!");
+                Console.ReadKey();
+                return;
+            }
+
             if (newDistance < secondBestTourDistance && newDistance > bestTourDistance)
             {
                 SaveTour(secondBestTour, SecondBestTourFileName);
@@ -297,6 +300,23 @@ namespace TSP
             UpdateLoggerFooter();
         }
 
+
+        public static bool AreTourValid()
+        {
+            long sum1 = bestTour.Select(i => (long)i).Sum();
+
+            if (sum1 != sum150k)
+                return false;
+
+            long sum2 = secondBestTour.Select(i => (long)i).Sum();
+
+            if (sum2 != sum150k)
+                return false;
+
+            bool disjoint = CheckDisjointness(bestTour, secondBestTour);
+
+            return disjoint;
+        }
 
         public static bool CheckDisjointness(IntegerPermutation tour1, IntegerPermutation tour2)
         {

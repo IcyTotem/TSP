@@ -9,6 +9,8 @@ namespace TSP
     public class TwoOptimizer
     {
         private PointArray nodes;
+        private IntegerPermutation currentSolution, betterSolution;
+        private TabuEdgeCollection tabuList;
 
         public NNClusterSet ClusterSet { get; set; }
 
@@ -50,7 +52,6 @@ namespace TSP
             }
         }
 
-
         public void OptimizeDisjoint(IntegerPermutation solution, IntegerPermutation tabuSolution)
         {
             var tabuList = TabuEdgeCollection.CreateFromTour(tabuSolution);
@@ -88,6 +89,7 @@ namespace TSP
             }
         }
 
+
         public void CrossOptimize(IntegerPermutation solution, IntegerPermutation betterSolution)
         {
             var tabuList = TabuEdgeCollection.CreateFromTour(betterSolution);
@@ -95,9 +97,13 @@ namespace TSP
             var betterDistance = nodes.GetDistance(betterSolution);
             int end = nodes.Length - 1;
 
+            this.currentSolution = solution;
+            this.betterSolution = betterSolution;
+            this.tabuList = tabuList;
+
             double overallGain = 0, overallCost = 0;
 
-            TaskLogger.Text = "Running cross 2-opt heuristic both solutions...";
+            TaskLogger.Text = "Running cross 2-opt heuristic on both solutions...";
 
             for (int i = 0; i < end; i++)
             {
@@ -141,14 +147,14 @@ namespace TSP
                             startNode = a;
                             endNode = c;
                             middleNode = this.FindTwoEdgesPathMiddleNode(a, c);
-                            delta = this.ComputeCostOfTraversing(betterSolution, a, middleNode, c);
+                            delta = this.ComputeCostOfTraversing(a, middleNode, c);
                         } 
                         else // if (bdTabu)
                         {
                             startNode = b;
                             endNode = d;
                             middleNode = this.FindTwoEdgesPathMiddleNode(b, d);
-                            delta = this.ComputeCostOfTraversing(betterSolution, b, middleNode, d);
+                            delta = this.ComputeCostOfTraversing(b, middleNode, d);
                         }
 
                         // Increase in distance of the best solution
@@ -185,6 +191,7 @@ namespace TSP
             }
         }
 
+        // Find the minimum-distance non-prohibited node that can be inserted between start and end
         private int FindTwoEdgesPathMiddleNode(int start, int end)
         {
             double minDistance = double.PositiveInfinity;
@@ -194,30 +201,45 @@ namespace TSP
 
             if (this.ClusterSet != null)
             {
+                // Concat also the original search space at the end because if all nearest
+                // edges in the clusters are tabu, then we have to try the normal approach
                 searchSpace =
-                    this.ClusterSet.NearestNeighborsOf(start).Union(
-                    this.ClusterSet.NearestNeighborsOf(end));
+                    this.ClusterSet.NearestNeighborsOf(start)
+                        .Concat(this.ClusterSet.NearestNeighborsOf(end))
+                        .Concat(searchSpace);
             }
 
-            foreach (int i in searchSpace)
+            foreach (int node in searchSpace)
             {
-                if ((i == start) || (i == end))
+                if ((node == start) || (node == end))
                     continue;
 
-                double starti = nodes.GetDistance(start, i);
+                double starti = nodes.GetDistance(start, node);
 
-                if (starti > minDistance)
+                // Additional edges may have been already used!!
+                if ((starti > minDistance) || tabuList.IsTabu(start, node))
                     continue;
 
-                double iend = nodes.GetDistance(i, end);
+                double iend = nodes.GetDistance(node, end);
 
-                if (iend > minDistance)
+                // And this as well
+                if ((iend > minDistance) || tabuList.IsTabu(node, end))
+                    continue;
+
+                // Now, let's assume (start, node) and (node, end) are not prohibited and their
+                // distance is good. If we add that node in between them, the former edges
+                // (prev, node) and (node, next) would be replaced by (prev, next), which may
+                // in turn be prohibited as well. Let's check
+                int nodeNext = betterSolution.GetNext(middleNode);
+                int nodePrev = betterSolution.GetPrev(middleNode);
+
+                if (tabuList.IsTabu(nodePrev, nodeNext))
                     continue;
 
                 if (starti + iend < minDistance)
                 {
                     minDistance = starti + iend;
-                    middleNode = i;
+                    middleNode = node;
                 }
             }
 
@@ -225,13 +247,12 @@ namespace TSP
         }
 
         // Compute the cost (increment in solution distance) of inserting a new stop between a and c, namely acMiddleNode
-        private double ComputeCostOfTraversing(IntegerPermutation betterSolution, int a, int acMiddleNode, int c)
+        private double ComputeCostOfTraversing(int a, int acMiddleNode, int c)
         {
             // Remember that if we use node n as a middle node between a and c,
             // we must skip n while traveling along the remaining route
-            int mnIndex = betterSolution.IndexOf(acMiddleNode);
-            int mnNext = betterSolution[betterSolution.GetNextIndex(mnIndex)];
-            int mnPrev = betterSolution[betterSolution.GetPrevIndex(mnIndex)];
+            int mnNext = betterSolution.GetNext(acMiddleNode);
+            int mnPrev = betterSolution.GetPrev(acMiddleNode);
 
             // Now we have to travel from (a, n, c) to avoid the use of arc (a, c),
             // INCREASING the length of the path by:
